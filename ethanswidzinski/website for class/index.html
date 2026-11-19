@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SOULFORGED: UNLEASHED</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #090812;
+      color: white;
+      font-family: Arial, Helvetica, sans-serif;
+      overflow-x: hidden;
+    }
+
+    button, select {
+      font: inherit;
+    }
+
+    .screen {
+      min-height: 100vh;
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    #select-screen {
+      background:
+        radial-gradient(ellipse at 50% 20%, #402044 0%, transparent 55%),
+        linear-gradient(140deg, #100c20, #090812);
+    }
+
+    #select-screen h1 {
+      font-size: clamp(36px, 8vw, 72px);
+      letter-spacing: 8px;
+      margin-bottom: 4px;
+      text-shadow: 0 0 25px #ff4c62;
+    }
+
+    .subtitle {
+      color: #ff536a;
+      letter-spacing: 12px;
+      margin-bottom: 28px;
+      font-size: 14px;
+    }
+
+    .mode-select {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 28px;
+      color: #ffb9c1;
+      font-size: 13px;
+      letter-spacing: 2px;
+    }
+
+    .mode-select select {
+      padding: 8px 12px;
+      background: #21172d;
+      color: white;
+      border: 1px solid #9b4b86;
+      border-radius: 6px;
+    }
+
+    .selection-area {
+      width: min(100%, 900px);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 20px;
+    }
+
+    .selection-panel {
+      background: rgba(28, 21, 42, 0.85);
+      border: 1px solid #493452;
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    .selection-panel h2 {
+      letter-spacing: 3px;
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .portrait {
+      width: 120px;
+      height: 120px;
+      margin: 12px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+      border: 3px solid #716080;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #342039, #110d20);
+      overflow: hidden;
+    }
+
+    .selection-panel h3 {
+      margin: 8px 0 4px;
+      letter-spacing: 1px;
+    }
+
+    .selection-panel p {
+      color: #b8aabd;
+      font-size: 13px;
+      min-height: 36px;
+      margin-bottom: 12px;
+    }
+
+    .fighter-options {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .fighter-option {
+      border: 1px solid #675172;
+      color: white;
+      background: #21172d;
+      padding: 8px 12px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .fighter-option.selected {
+      border-color: #ff637a;
+      background: #57243e;
+      box-shadow: 0 0 12px #ff637a55;
+    }
+
+    .main-button,
+    .secondary-button {
+      margin-top: 16px;
+      border: none;
+      border-radius: 8px;
+      padding: 14px 28px;
+      color: white;
+      font-weight: bold;
+      letter-spacing: 1px;
+      cursor: pointer;
+      background: linear-gradient(100deg, #e83e55, #a42d88);
+      box-shadow: 0 0 18px #ff345744;
+    }
+
+    .main-button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .secondary-button {
+      background: #342640;
+      border: 1px solid #8c6598;
+    }
+
+    .selection-hint {
+      color: #a995b2;
+      font-size: 12px;
+      margin-top: 12px;
+    }
+
+    #battle-screen {
+      justify-content: flex-start;
+      background: #0c0915;
+      padding: 16px;
+    }
+
+    .battle-header {
+      width: min(100%, 1000px);
+      display: grid;
+      grid-template-columns: 1fr 60px 1fr;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .fighter-hud {
+      text-align: left;
+    }
+
+    .right-hud {
+      text-align: right;
+    }
+
+    .hud-name {
+      font-weight: bold;
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .health-track,
+    .meter-track {
+      height: 16px;
+      background: #302538;
+      border: 1px solid #68516d;
+      overflow: hidden;
+      border-radius: 4px;
+    }
+
+    .meter-track {
+      height: 6px;
+      margin-top: 4px;
+    }
+
+    .health-fill,
+    .meter-fill {
+      height: 100%;
+      width: 100%;
+      transition: width 0.12s linear;
+    }
+
+    .p1-health {
+      background: linear-gradient(90deg, #ff9a35, #ff3f40);
+    }
+
+    .p2-health {
+      background: linear-gradient(90deg, #a855ff, #ef52df);
+      margin-left: auto;
+    }
+
+    .p1-meter {
+      background: #ffbc4d;
+    }
+
+    .p2-meter {
+      background: #e45bff;
+      margin-left: auto;
+    }
+
+    .fighter-hud small {
+      display: block;
+      color: #bcaec7;
+      margin-top: 4px;
+      font-size: 11px;
+    }
+
+    .round-title {
+      font-weight: 900;
+      font-size: 22px;
+      color: #ff6d7e;
+    }
+
+    #stage {
+      position: relative;
+      width: min(100%, 1000px);
+      height: min(60vh, 480px);
+      min-height: 320px;
+      overflow: hidden;
+      border: 2px solid #6d426b;
+      border-radius: 8px;
+      background:
+        radial-gradient(ellipse at 50% 30%, #663047 0%, transparent 55%),
+        linear-gradient(#20152d, #4a2637 70%, #1a1420);
+      box-shadow: 0 0 30px #bd315b30;
+    }
+
+    .stage-sun {
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ffe0a1, #ff824e 55%, transparent 72%);
+      left: 50%;
+      top: 20px;
+      transform: translateX(-50%);
+      opacity: 0.5;
+      filter: blur(3px);
+    }
+
+    .stage-ground {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 80px;
+      background:
+        linear-gradient(transparent, #100c18 15%),
+        repeating-linear-gradient(90deg, #392333 0 50px, #2a1c2b 50px 100px);
+      border-top: 3px solid #b05d65;
+    }
+
+    .fighter {
+      position: absolute;
+      width: 60px;
+      height: 100px;
+      bottom: 80px;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .fighter-body {
+      position: relative;
+      font-size: 48px;
+      z-index: 2;
+      filter: drop-shadow(0 0 8px currentColor);
+    }
+
+    .fighter-aura {
+      position: absolute;
+      inset: 8px -4px;
+      border-radius: 50%;
+      opacity: 0.2;
+      filter: blur(16px);
+    }
+
+    .announcer {
+      position: absolute;
+      z-index: 30;
+      left: 50%;
+      top: 40%;
+      transform: translate(-50%, -50%);
+      font-size: clamp(36px, 7vw, 64px);
+      font-weight: 900;
+      font-style: italic;
+      color: white;
+      text-shadow: 0 0 18px #ff3e68;
+      letter-spacing: 6px;
+      pointer-events: none;
+    }
+
+    .battle-footer {
+      width: min(100%, 1000px);
+      padding: 12px 0;
+      color: #bba9c8;
+      font-size: 11px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #quit-button {
+      color: #ff9da9;
+      border: 1px solid #874354;
+      border-radius: 5px;
+      padding: 6px 12px;
+      background: #241522;
+      cursor: pointer;
+    }
+
+    #victory-screen {
+      background:
+        radial-gradient(circle at 50% 35%, #572a43, transparent 50%),
+        #0a0812;
+    }
+
+    .victory-label {
+      letter-spacing: 5px;
+      color: #ffb16b;
+      font-size: 14px;
+    }
+
+    #victory-title {
+      font-size: clamp(40px, 8vw, 80px);
+      letter-spacing: 6px;
+      color: #ffcb77;
+      text-shadow: 0 0 30px #ff692f;
+      margin: 8px 0;
+    }
+
+    .winner-portrait {
+      width: 140px;
+      height: 140px;
+      margin: 16px auto;
+    }
+
+    #winner-name {
+      letter-spacing: 4px;
+      font-size: 24px;
+      margin: 8px 0;
+    }
+
+    #victory-message {
+      color: #c9b8d1;
+      margin-bottom: 16px;
+    }
+
+    .victory-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .projectile {
+      position: absolute;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    #tutorial-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(9, 8, 18, 0.96);
+      z-index: 200;
+      padding: 40px 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #tutorial-panel h2 {
+      font-size: 32px;
+      letter-spacing: 4px;
+      margin-bottom: 20px;
+      color: #ff637a;
+    }
+
+    #tutorial-panel p {
+      max-width: 620px;
+      line-height: 1.7;
+      font-size: 15px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 700px) {
+      .selection-area {
+        grid-template-columns: 1fr;
+      }
+
+      .battle-header {
+        gap: 8px;
+      }
+
+      #stage {
+        height: 360px;
+      }
+
+      .portrait {
+        width: 90px;
+        height: 90px;
+        font-size: 42px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CHARACTER SELECT -->
+  <section id="select-screen" class="screen">
+    <h1>SOULFORGED</h1>
+    <p class="subtitle">UNLEASHED</p>
+
+    <div class="mode-select">
+      <label for="game-mode">GAME MODE</label>
+      <select id="game-mode">
+        <option value="bot">PLAYER VS CPU</option>
+        <option value="pvp">PLAYER VS PLAYER</option>
+      </select>
+    </div>
+
+    <div class="selection-area">
+      <div class="selection-panel">
+        <h2>PLAYER 1</h2>
+        <div id="p1-portrait" class="portrait"><span>?</span></div>
+        <h3 id="p1-name">Select Fighter</h3>
+        <p id="p1-description">Choose your fighter.</p>
+        <div id="p1-options" class="fighter-options"></div>
+      </div>
+
+      <div class="selection-panel">
+        <h2 id="p2-select-title">CPU OPPONENT</h2>
+        <div id="p2-portrait" class="portrait"><span>?</span></div>
+        <h3 id="p2-name">Select Fighter</h3>
+        <p id="p2-description">Choose your opponent.</p>
+        <div id="p2-options" class="fighter-options"></div>
+      </div>
+    </div>
+
+    <button id="start-button" class="main-button" disabled>START FIGHT</button>
+    <button id="tutorial-button" class="secondary-button">HOW TO PLAY</button>
+    <p class="selection-hint">Choose two different fighters to begin.</p>
+  </section>
+
+  <!-- TUTORIAL PANEL -->
+  <div id="tutorial-panel" class="hidden">
+    <h2>HOW TO PLAY</h2>
+    <p>
+      <strong>Player 1 Controls:</strong><br>
+      A / D = Move left / right<br>
+      W = Jump<br>
+      F = Punch<br>
+      G = Kick<br>
+      Q / E / R = Abilities<br>
+      T = Ultimate (when meter is full)<br><br>
+
+      <strong>Player 2 Controls (Player vs Player mode):</strong><br>
+      Arrow Keys = Move<br>
+      Up Arrow = Jump<br>
+      J = Punch<br>
+      K = Kick<br>
+      U / I / O = Abilities<br>
+      M = Ultimate<br><br>
+
+      Fill your meter by landing hits, then unleash your ultimate when it reaches 100%.
+    </p>
+    <button id="close-tutorial" class="main-button">CLOSE</button>
+  </div>
+
+  <!-- BATTLE SCREEN -->
+  <section id="battle-screen" class="screen hidden">
+    <header class="battle-header">
+      <div class="fighter-hud">
+        <div class="hud-name" id="hud-p1-name">PLAYER 1</div>
+        <div class="health-track">
+          <div id="p1-health" class="health-fill p1-health"></div>
+        </div>
+        <div class="meter-track">
+          <div id="p1-meter" class="meter-fill p1-meter"></div>
+        </div>
+        <small id="p1-status">READY</small>
+      </div>
+
+      <div class="round-title">VS</div>
+
+      <div class="fighter-hud right-hud">
+        <div class="hud-name" id="hud-p2-name">PLAYER 2</div>
+        <div class="health-track">
+          <div id="p2-health" class="health-fill p2-health"></div>
+        </div>
+        <div class="meter-track">
+          <div id="p2-meter" class="meter-fill p2-meter"></div>
+        </div>
+        <small id="p2-status">READY</small>
+      </div>
+    </header>
+
+    <div id="stage">
+      <div class="stage-sun"></div>
+      <div class="stage-ground"></div>
+
+      <div id="player1" class="fighter">
+        <span class="fighter-aura"></span>
+        <span class="fighter-body">🔥</span>
+      </div>
+
+      <div id="player2" class="fighter">
+        <span class="fighter-aura"></span>
+        <span class="fighter-body">💜</span>
+      </div>
+
+      <div id="fight-announcer" class="announcer hidden">FIGHT!</div>
+    </div>
+
+    <div class="battle-footer">
+      <div id="p1-controls">P1: A/D MOVE · W JUMP · F PUNCH · G KICK · Q/E/R ABILITIES · T ULTIMATE</div>
+      <div id="p2-controls">P2: ARROWS MOVE · J PUNCH · K KICK · U/I/O ABILITIES · M ULTIMATE</div>
+      <button id="quit-button">QUIT MATCH</button>
+    </div>
+  </section>
+
+  <!-- VICTORY SCREEN -->
+  <section id="victory-screen" class="screen hidden">
+    <p class="victory-label">MATCH COMPLETE</p>
+    <h1 id="victory-title">VICTORY!</h1>
+
+    <div id="winner-portrait" class="portrait winner-portrait"><span>🏆</span></div>
+
+    <h2 id="winner-name">WINNER</h2>
+    <p id="victory-message">An incredible fight!</p>
+
+    <div class="victory-buttons">
+      <button id="rematch-button" class="main-button">REMATCH</button>
+      <button id="select-again-button" class="secondary-button">CHARACTER SELECT</button>
+    </div>
+  </section>
+
+  <script src="game.js"></script>
+</body>
+</html>
